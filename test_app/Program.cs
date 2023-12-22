@@ -43,25 +43,17 @@ public static class Program
 
         foreach (ClrThread t in runtime.Threads)
         {
-            try
-            {
-                stacks.Add(
-                    t.ManagedThreadId,
-                    // Max frames: 10000 since EnumerateStackTrace may loop indefinitely for corrupted stacks.
-                    t.EnumerateStackTrace(false, maxFrames: 1000).Select(f =>
+            stacks.Add(
+                t.ManagedThreadId,
+                t.EnumerateStackTrace(false, maxFrames: 1000).Select(f =>
+                {
+                    if (f.Method != null)
                     {
-                        if (f.Method != null)
-                        {
-                            return f.Method.Type.Name + "." + f.Method.Name;
-                        }
-                        return "";
-                    }).ToArray()
-                );
-            }
-            catch (Exception e)
-            {
-                stacks.Add(t.ManagedThreadId, new string[] { $"Failed with exception {e}" });
-            }
+                        return f.Method.Type.Name + "." + f.Method.Name;
+                    }
+                    return "";
+                }).ToArray()
+            );
         }
         
         
